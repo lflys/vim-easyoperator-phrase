@@ -35,20 +35,12 @@ function! easyoperator#phrase#selectphrase() "{{{
     call s:save_values()
     let orig_pos = [line('.'), col('.')]
 
-    let chars = s:GetSearchChar2(0)
-    if empty(chars)
-        return
-    endif
-    " TODO: convet regexp
-    " convert regep
-    let re = s:convertRegep(chars[0]) . '\|' . s:convertRegep(chars[1])
-
     call EasyMotion#highlight#add_color_group({
         \ g:EasyOperator_phrase_first : 5
         \ })
 
     " First
-    let is_cancelled = EasyMotion#User(re, 0, 2, 0)
+    let is_cancelled = EasyMotion#User(s:convertRegep(s:GetSearchChar(0, 1)), 0, 2, 0)
     if is_cancelled
         keepjumps call cursor(orig_pos[0], orig_pos[1])
         call s:restore_values()
@@ -62,7 +54,7 @@ function! easyoperator#phrase#selectphrase() "{{{
         \ '\%'. pos1[0] .'l\%' . pos1[1] . 'c', g:EasyOperator_phrase_first)
 
     " Second
-    let is_cancelled = EasyMotion#User(re, 0, 2, 0)
+    let is_cancelled = EasyMotion#User(s:convertRegep(s:GetSearchChar(0, 2)), 0, 2, 0)
     if is_cancelled
         keepjumps call cursor(orig_pos[0], orig_pos[1])
         call s:restore_values()
@@ -135,26 +127,19 @@ function! s:GetChar() " {{{
     endif
     return nr2char(char)
 endfunction " }}}
-function! s:GetSearchChar2(visualmode) " {{{
-    " For selectlines and selectphrase
-    let chars = []
-    for i in [1, 2]
-        redraw
-
-        call s:Prompt('Search for character ' . i)
-        let char = s:GetChar()
-
-        " Check that we have an input char
-        if empty(char)
-            " Restore selection
-            if ! empty(a:visualmode)
-                silent exec 'normal! gv'
-            endif
-            return ''
+function! s:GetSearchChar(visualmode, i) "{{{
+    redraw
+    call s:Prompt('Search for character ' . a:i)
+    let char = s:GetChar()
+    " Check that we have an input char
+    if empty(char)
+        " Restore selection
+        if ! empty(a:visualmode)
+            silent exec 'normal! gv'
         endif
-        call add(chars, char)
-    endfor
-    return chars
+        return ''
+    endif
+    return char
 endfunction " }}}
 function! s:convertRegep(input) " {{{
     let sid = get(l:, 'sid', matchlist(execute('scriptnames'), '\v\n\s*(\d+):[^\n]*autoload/EasyMotion.vim\s*\n')[1])
