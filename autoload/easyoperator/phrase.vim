@@ -40,7 +40,8 @@ function! easyoperator#phrase#selectphrase() "{{{
         return
     endif
     " TODO: convet regexp
-    let re = chars[0] . '\|' . chars[1]
+    " convert regep
+    let re = s:convertRegep(chars[0]) . '\|' . s:convertRegep(chars[1])
 
     call EasyMotion#highlight#add_color_group({
         \ g:EasyOperator_phrase_first : 5
@@ -154,6 +155,17 @@ function! s:GetSearchChar2(visualmode) " {{{
         call add(chars, char)
     endfor
     return chars
+endfunction " }}}
+function! s:convertRegep(input) " {{{
+    let sid = get(l:, 'sid', matchlist(execute('scriptnames'), '\v\n\s*(\d+):[^\n]*autoload/EasyMotion.vim\s*\n')[1])
+    let EasyMotionconvertRegep = '<SNR>' . sid . '_convertRegep'
+    if exists('*' . EasyMotionconvertRegep)
+        let EasymotionconvertRegepRef = function('<SNR>' . sid . '_convertRegep')
+    else
+        let sid = matchlist(execute('scriptnames'), '\v\n\s*(\d+):[^\n]*autoload/EasyMotion.vim\s*\n')[1]
+        let EasymotionconvertRegepRef = function('<SNR>' . sid . '_convertRegep')
+    endif
+    return EasymotionconvertRegepRef(a:input)
 endfunction " }}}
 
 " Restore 'cpoptions' {{{
